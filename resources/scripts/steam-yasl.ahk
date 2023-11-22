@@ -209,53 +209,20 @@ GetProcessInfo(p_pid) {
 
 ; ----------------------------------------------------------------------------------------------------------------------
 ; Simulate the Process, Exist command, but apply a filter for the current user.
-ProcessExist(varProcessName, processOwnerUserName := "") {
+ProcessExist(varProcessName, varUserName := "") {
   varQuery := "Select ProcessId from Win32_Process WHERE Name LIKE '%" . varProcessName . "%'"
+  varProcessUserName := ComObject(0x400C, &UN) ; combination of VT_BYREF and VT_VARIANT.
 
-  For varProcess in ComObjGet("winmgmts:").ExecQuery(varQuery, "WQL", 48) {
-    If (processOwnerUserName != "") {
-      currentProcessOwnerUserName := ComVar()
-      varProcess.GetOwner(currentProcessOwnerUserName.ref)
-      If (currentProcessOwnerUserName[] != processOwnerUserName)
-        Continue
+  For objProcess in ComObjGet("winmgmts:").ExecQuery(varQuery, "WQL", 48) {
+    ; If GetOwner returns 0, then it succeeded.
+    If (objProcess.GetOwner(varProcessUserName.ref) = 0) {
+      If (varProcessUserName[] = varUserName)
+        ; This will exit the loop early with the PID.
+        Return objProcess.processID
     }
-    ; This will exit the loop early with the PID.
-    Return varProcess.processID
   }
   ; If we've landed outside the loop, then the process wasn't found. Simulate the Process, Exist command by returning 0.
   Return 0
-}
-
-; ----------------------------------------------------------------------------------------------------------------------
-; These com functions are required by the ProcessExist function, to query Win32_Process.
-ComVar(Type := 0xC) {
-  static base := { __Get: "ComVarGet", __Set: "ComVarSet", __Delete: "ComVarDel" }
-  ; Create an array of 1 VARIANT.  This method allows built-in code to take
-  ; care of all conversions between VARIANT and AutoHotkey internal types.
-  arr := ComObjArray(Type, 1)
-  ; Lock the array and retrieve a pointer to the VARIANT.
-  DllCall("oleaut32\SafeArrayAccessData", "ptr", ComObjValue(arr), "ptr*", &arr_data)
-  ; Store the array and an object which can be used to pass the VARIANT ByRef.
-  ;Return { ref: ComObjParameter(0x4000|Type, arr_data), _: arr, base: base }
-  Return { ref: ComValue(0x4000|Type, arr_data), _: arr, base: base }
-}
-
-; Called when script accesses an unknown field.
-ComVarGet(cv, p*) {
-  If p.MaxIndex() = "" ; No name/parameters, i.e. cv[]
-    Return cv._[0]
-}
-
-; Called when script sets an unknown field.
-ComVarSet(cv, v, p*) {
-  If p.MaxIndex() = "" ; No name/parameters, i.e. cv[]:=v
-    Return cv._[0] := v
-}
-
-; Called when the object is being freed.
-ComVarDel(cv) {
-  ; This must be done to allow the internal array to be freed.
-  DllCall("oleaut32\SafeArrayUnaccessData", "ptr", ComObjValue(cv._))
 }
 
 ; ----------------------------------------------------------------------------------------------------------------------
