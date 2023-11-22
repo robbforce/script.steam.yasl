@@ -48,7 +48,7 @@
 ;			  FuncOrMethod(Win_Hwnd, Win_Title, Win_Class, Win_Exe, Win_Event)
 ;		
 ;		Parameters:
-;		1) {Win_Hwnd}		window handle ID of window with event 
+;   	1) {Win_Hwnd}		window handle ID of window with event 
 ;   	2) {Win_Title}		window Title of window with event
 ;   	3) {Win_Class}		window Class of window with event
 ;   	4) {Win_Exe}			window Exe of window with event
@@ -74,7 +74,7 @@
 ;		Desc: Add Event Hook
 ;
 ;   	Parameters:
-;		1) {eventMin}		lowest Event value handled by the hook function
+;   	1) {eventMin}		lowest Event value handled by the hook function
 ;   	2) {eventMax}		highest event value handled by the hook function
 ;   	3) {eventProc}		event hook function, call be function name or function object
 ;   	4) {idProcess}		ID of the process from which the hook function receives events (default = 0, all processes)
@@ -154,7 +154,7 @@
 ;			  FuncOrMethod(hWinEventHook, event, hwnd, idObject, idChild, dwEventThread, dwmsEventTime)
 ;		
 ;		Parameters:
-;		1) {hWinEventHook}		Handle to an event hook instance.
+;   	1) {hWinEventHook}		Handle to an event hook instance.
 ;   	2) {event}				Event that occurred. This value is one of the event constants
 ;   	3) {hwnd}				Handle to the window that generates the event.
 ;   	4) {idObject}			Identifies the object that is associated with the event.

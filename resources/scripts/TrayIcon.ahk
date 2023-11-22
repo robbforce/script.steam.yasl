@@ -1,12 +1,5 @@
 ﻿#Requires AutoHotkey v2.0
-#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
 ; #Warn  ; Enable warnings to assist with detecting common errors.
-SendMode Input  ; Recommended for new scripts due to its superior speed and reliability.
-SetWorkingDir %A_ScriptDir%  ; Ensures a consistent starting directory.
-
-+^!F6::
-TrayIcon_Button("AudioSwitcher.exe")
-return
 
 ; ported to AHK v2.0-beta by @krasnovpro
 ; https://www.autohotkey.com/boards/viewtopic.php?f=6&t=1229
@@ -53,12 +46,11 @@ return
 
 TrayIcon_GetInfo(sExeName := "") {
   dhw := A_DetectHiddenWindows
-  DetectHiddenWindows 1
+  DetectHiddenWindows(1)
 
   oTrayInfo    := []
   for sTray in ["Shell_TrayWnd", "NotifyIconOverflowWindow"] {
     idxTB      := TrayIcon_GetTrayBar(sTray)
-    MsgBox, %sTray%
     pidTaskbar := WinGetPID(["ahk_class ", sTray,"",""])
 
     hProc      := DllCall("OpenProcess",    "UInt",0x38, "Int",0, "UInt",pidTaskbar)
@@ -108,14 +100,7 @@ TrayIcon_GetInfo(sExeName := "") {
     DllCall("VirtualFreeEx", "Ptr",hProc, "Ptr",pRB, "UPtr",0, "UInt",0x8000)
     DllCall("CloseHandle",   "Ptr",hProc)
   }
-  if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-  else
-    {
-        DetectHiddenWindows 0
-    }
+  DetectHiddenWindows(dhw)
   return oTrayInfo
 }
 
@@ -129,19 +114,12 @@ TrayIcon_GetInfo(sExeName := "") {
 ; ----------------------------------------------------------------------------------------------------------------------
 TrayIcon_Hide(idCmd, sTray := "Shell_TrayWnd", bHide := true) {
   dhw := A_DetectHiddenWindows
-  DetectHiddenWindows 1
+  DetectHiddenWindows(1)
   idxTB := TrayIcon_GetTrayBar()
   SendMessage(TB_HIDEBUTTON := 0x0404, idCmd, bHide, "ToolbarWindow32" idxTB, "ahk_class " sTray)
   SendMessage(0x001A, 0, 0,, "ahk_class " sTray)
-  if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-  else
-    {
-        DetectHiddenWindows 0
-    }
-  }
+  DetectHiddenWindows(dhw)
+}
 
 ; ----------------------------------------------------------------------------------------------------------------------
 ; Function .....: TrayIcon_Delete
@@ -151,19 +129,12 @@ TrayIcon_Hide(idCmd, sTray := "Shell_TrayWnd", bHide := true) {
 ; Info .........: TB_DELETEBUTTON message - http://goo.gl/L0pY4R
 ; ----------------------------------------------------------------------------------------------------------------------
 TrayIcon_Delete(idx, sTray := "Shell_TrayWnd") {
-    dhw := A_DetectHiddenWindows
-    DetectHiddenWindows 1
-    idxTB := TrayIcon_GetTrayBar()
-    SendMessage(TB_DELETEBUTTON := 0x0416, idx, 0, "ToolbarWindow32" idxTB, "ahk_class " sTray)
-    SendMessage(0x001A, 0, 0,, "ahk_class " sTray)
-    if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-    else
-    {
-        DetectHiddenWindows 0
-    }
+  dhw := A_DetectHiddenWindows
+  DetectHiddenWindows(1)
+  idxTB := TrayIcon_GetTrayBar()
+  SendMessage(TB_DELETEBUTTON := 0x0416, idx, 0, "ToolbarWindow32" idxTB, "ahk_class " sTray)
+  SendMessage(0x001A, 0, 0,, "ahk_class " sTray)
+  DetectHiddenWindows(dhw)
 }
 
 ; ----------------------------------------------------------------------------------------------------------------------
@@ -192,17 +163,10 @@ TrayIcon_Remove(hWnd, uId) {
 ; ----------------------------------------------------------------------------------------------------------------------
 TrayIcon_Move(idxOld, idxNew, sTray := "Shell_TrayWnd") {
   dhw := A_DetectHiddenWindows
-  DetectHiddenWindows 1
+  DetectHiddenWindows(1)
   idxTB := TrayIcon_GetTrayBar()
   SendMessage 0x452, idxOld, idxNew, "ToolbarWindow32" idxTB, "ahk_class " sTray ; TB_MOVEBUTTON := 0x452
-  if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-  else
-    {
-        DetectHiddenWindows 0
-    }
+  DetectHiddenWindows(dhw)
 }
 
 ; ----------------------------------------------------------------------------------------------------------------------
@@ -219,19 +183,12 @@ TrayIcon_Move(idxOld, idxNew, sTray := "Shell_TrayWnd") {
 ; ----------------------------------------------------------------------------------------------------------------------
 TrayIcon_Set(hWnd, uId, hIcon, hIconSmall := 0, hIconBig := 0) {
   dhw := A_DetectHiddenWindows
-  DetectHiddenWindows 1
+  DetectHiddenWindows(1)
   if hIconSmall
     SendMessage(WM_SETICON := 0x0080, 0, hIconSmall,, "ahk_id " hWnd)
   if hIconBig
     SendMessage(WM_SETICON := 0x0080, 1, hIconBig,, "ahk_id " hWnd)
-  if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-  else
-    {
-        DetectHiddenWindows 0
-    }
+  DetectHiddenWindows(dhw)
 
   NID := Buffer(2 * 384 + A_PtrSize * 5 + 40, 0)
   NumPut("UPtr", NID.Size, NID, 0)
@@ -252,7 +209,7 @@ TrayIcon_Set(hWnd, uId, hIcon, hIconSmall := 0, hIconBig := 0) {
 TrayIcon_GetTrayBar(sTray := "Shell_TrayWnd") {
   idxTB := "", nTB := ""
   dhw := A_DetectHiddenWindows
-  DetectHiddenWindows 1
+  DetectHiddenWindows(1)
   for k in WinGetControls("ahk_class " sTray)
     if RegExMatch(k, "(?<=ToolbarWindow32)\d+(?!.*ToolbarWindow32)", &nTB)
       loop nTB[] {
@@ -264,14 +221,7 @@ TrayIcon_GetTrayBar(sTray := "Shell_TrayWnd") {
         idxTB := A_Index
         break
       }
-  if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-  else
-    {
-        DetectHiddenWindows 0
-    }
+  DetectHiddenWindows(dhw)
   return idxTB
 }
 
@@ -296,22 +246,15 @@ TrayIcon_GetHotItem() {
 ; ----------------------------------------------------------------------------------------------------------------------
 TrayIcon_Button(sExeName, sButton := "L", bDouble := false, nIdx := 1) {
   dhw := A_DetectHiddenWindows
-  DetectHiddenWindows 1
+  DetectHiddenWindows(1)
   sButton := "WM_" sButton "BUTTON"
   oIcons  := TrayIcon_GetInfo(sExeName)
   if bDouble
     action("DBLCLK")
   else
     action("DOWN"), action("UP")
-  if (dhw)
-    {
-        DetectHiddenWindows 1
-    }
-  else
-    {
-        DetectHiddenWindows 0
-    }
-  /*
+  DetectHiddenWindows(dhw)
+
   action(arg) {
     static actions := Map(  "WM_MOUSEMOVE"    ,0x0200, "WM_LBUTTONDOWN",0x0201, "WM_LBUTTONUP",0x0202
                           , "WM_LBUTTONDBLCLK",0x0203, "WM_RBUTTONDOWN",0x0204, "WM_RBUTTONUP",0x0205
@@ -319,13 +262,4 @@ TrayIcon_Button(sExeName, sButton := "L", bDouble := false, nIdx := 1) {
                           , "WM_MBUTTONDBLCLK",0x0209)
     PostMessage(oIcons[nIdx]["msgid"], oIcons[nIdx]["uid"], actions[sButton arg],, "ahk_id " oIcons[nIdx]["hwnd"])
   }
-  */
 }
-
-action(arg) {
-    static actions := Map(  "WM_MOUSEMOVE"    ,0x0200, "WM_LBUTTONDOWN",0x0201, "WM_LBUTTONUP",0x0202
-                          , "WM_LBUTTONDBLCLK",0x0203, "WM_RBUTTONDOWN",0x0204, "WM_RBUTTONUP",0x0205
-                          , "WM_RBUTTONDBLCLK",0x0206, "WM_MBUTTONDOWN",0x0207, "WM_MBUTTONUP",0x0208
-                          , "WM_MBUTTONDBLCLK",0x0209)
-    PostMessage(oIcons[nIdx]["msgid"], oIcons[nIdx]["uid"], actions[sButton arg],, "ahk_id " oIcons[nIdx]["hwnd"])
-  }
